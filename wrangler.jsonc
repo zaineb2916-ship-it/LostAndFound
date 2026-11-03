@@ -1,0 +1,14 @@
+
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lostandfound",
+  "pages_build_output_dir": ".",
+  "compatibility_date": "2026-11-03",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lostandfound-db",
+      "database_id": "54f087ae-829a-43cd-bad9-081365c646d4"
+    }
+  ]
+}
