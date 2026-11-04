@@ -1,82 +1,21 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LostAndFound | المفقودات والموجودات</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background: #f3f6fb;
-            color: #243247;
-            text-align: center;
-        }
-        header {
-            background: #174b82;
-            color: white;
-            padding: 35px 15px;
-        }
-        header h1 { margin: 0 0 12px; }
-        main {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-        }
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 3px 12px #00000010;
-        }
-        .actions {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 25px;
-        }
-        button {
-            background: #174b82;
-            color: white;
-            border: 0;
-            padding: 13px 22px;
-            border-radius: 7px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover { background: #10365e; }
-        footer { margin-top: 45px; color: #667; }
-    </style>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LostAndFound | المفقودات والموجودات</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>LostAndFound</h1>
-        <p>منصة المفقودات والموجودات</p>
-    </header>
-
-    <main>
-        <div class="card">
-            <h2>مرحباً بك في منصتنا</h2>
-            <p>
-                منصة تساعدك في الإبلاغ عن الأغراض المفقودة
-                والعثور على الأغراض التي تم العثور عليها.
-            </p>
-
-            <div class="actions">
-                <button onclick="alert('سيتم تفعيل هذه الخدمة قريباً')">
-                    أبلغ عن غرض مفقود
-                </button>
-                <button onclick="alert('سيتم تفعيل هذه الخدمة قريباً')">
-                    أبلغ عن غرض موجود
-                </button>
-            </div>
-        </div>
-    </main>
-
-    <footer>
-        <p>LostAndFound © 2026</p>
-    </footer>
-</body>
-</html>
+<header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">L</span> Lost<span>And</span>Found</a>
+<nav><a href="index.html" data-ar="الرئيسية" data-en="Home">الرئيسية</a><a href="#latest" data-ar="البلاغات" data-en="Reports">البلاغات</a><a href="login.html" data-ar="دخول" data-en="Login">دخول</a><a class="nav-cta" href="register.html" data-ar="إنشاء حساب" data-en="Create account">إنشاء حساب</a></nav>
+<button class="lang" id="langBtn" type="button">EN</button></header>
+<main>
+<section class="hero"><div class="hero-copy"><span class="eyebrow" data-ar="منصة المفقودات والموجودات" data-en="Lost & Found Community Platform">منصة المفقودات والموجودات</span>
+<h1 data-ar="ما فُقد قد يعود إليك." data-en="What was lost can find its way back.">ما فُقد قد يعود إليك.</h1>
+<p data-ar="منصة تساعد مجتمعك على الإبلاغ عن الأغراض المفقودة والعثور على أصحاب الأغراض الموجودة بطريقة سهلة ومنظمة." data-en="A simple way for your community to report lost items and help found belongings reach their owners.">منصة تساعد مجتمعك على الإبلاغ عن الأغراض المفقودة والعثور على أصحاب الأغراض الموجودة بطريقة سهلة ومنظمة.</p>
+<div class="hero-actions"><a class="btn btn-gold" href="report.html" data-ar="أضف بلاغاً" data-en="Post a report">أضف بلاغاً</a><a class="btn btn-outline" href="#latest" data-ar="تصفح البلاغات" data-en="Browse reports">تصفح البلاغات</a></div></div>
+<div class="hero-art"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-symbol">⌕</div><div class="floating-card"><span class="dot"></span><span data-ar="معاً نعيد الأشياء لأصحابها" data-en="Together, things find their way home">معاً نعيد الأشياء لأصحابها</span></div></div></section>
+<section class="stats"><div><strong>01</strong><span data-ar="أبلغ عن المفقودات" data-en="Report lost items">أبلغ عن المفقودات</span></div><div><strong>02</strong><span data-ar="اعثر على الموجودات" data-en="Find found items">اعثر على الموجودات</span></div><div><strong>03</strong><span data-ar="تواصل لاسترجاعها" data-en="Request a return">تواصل لاسترجاعها</span></div></section>
+<section id="latest" class="section"><div class="section-heading"><div><span class="eyebrow" data-ar="آخر التحديثات" data-en="LATEST UPDATES">آخر التحديثات</span><h2 data-ar="أحدث البلاغات" data-en="Recent reports">أحدث البلاغات</h2></div><a class="text-link" href="login.html" data-ar="لوحة المستخدم ←" data-en="User dashboard →">لوحة المستخدم ←</a></div><div id="itemsGrid" class="items-grid"><p class="muted" data-ar="جارٍ تحميل البلاغات..." data-en="Loading reports...">جارٍ تحميل البلاغات...</p></div></section>
+</main><footer><span>© 2026 LostAndFound</span><span data-ar="منصة مجتمعية للمساعدة والتعاون" data-en="A community platform built on helping each other">منصة مجتمعية للمساعدة والتعاون</span></footer>
+<script src="app.js"></script><script>loadPublicItems();</script>
+</body></html>
