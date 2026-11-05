@@ -1,7 +1,6 @@
 
 const COOKIE = "laf_session";
-const ITERATIONS = 210000;
-
+const ITERATIONS = 100000;
 const enc = new TextEncoder();
 
 const b64 = (bytes) =>
