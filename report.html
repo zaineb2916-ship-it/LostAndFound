@@ -1,1 +1,119 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>إضافة بلاغ | LostAndFound</title><link rel="stylesheet" href="style.css"></head><body><header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">L</span> Lost<span>And</span>Found</a><nav><a href="dashboard.html" data-ar="لوحتي" data-en="Dashboard">لوحتي</a><a href="index.html" data-ar="الرئيسية" data-en="Home">الرئيسية</a></nav><button class="lang" id="langBtn">EN</button></header><main class="form-wrap"><section class="form-card"><span class="eyebrow" data-ar="شارك مجتمعك" data-en="HELP YOUR COMMUNITY">شارك مجتمعك</span><h1 data-ar="إضافة بلاغ جديد" data-en="Create a report">إضافة بلاغ جديد</h1><form id="reportForm"><label data-ar="نوع البلاغ" data-en="Report type">نوع البلاغ</label><select name="item_type" required><option value="lost" data-ar="غرض مفقود" data-en="Lost item">غرض مفقود</option><option value="found" data-ar="غرض موجود" data-en="Found item">غرض موجود</option></select><label data-ar="عنوان البلاغ" data-en="Item title">عنوان البلاغ</label><input name="title" required maxlength="150"><label data-ar="التصنيف" data-en="Category">التصنيف</label><select name="category_id" id="categorySelect"><option value="" data-ar="بدون تصنيف" data-en="No category">بدون تصنيف</option></select><label data-ar="الوصف" data-en="Description">الوصف</label><textarea name="description" rows="4" maxlength="2000"></textarea><label data-ar="مكان الفقد أو العثور" data-en="Location">مكان الفقد أو العثور</label><input name="location" maxlength="250"><label data-ar="رابط صورة (اختياري)" data-en="Image URL (optional)">رابط صورة (اختياري)</label><input name="image_url" type="url" placeholder="https://"><button class="btn btn-gold btn-full" type="submit" data-ar="نشر البلاغ" data-en="Publish report">نشر البلاغ</button><p id="formMessage" class="form-message" role="status"></p></form></section></main><script src="app.js"></script><script>requireLogin();loadCategories();bindReportForm();</script></body></html>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>إضافة بلاغ | LostAndFound</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="index.html">
+    <span class="brand-mark">L</span>
+    Lost<span>And</span>Found
+  </a>
+
+  <nav>
+    <a href="dashboard.html" data-ar="لوحتي" data-en="Dashboard">لوحتي</a>
+    <a href="index.html" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
+  </nav>
+
+  <button class="lang" id="langBtn">EN</button>
+</header>
+
+<main class="form-wrap">
+  <section class="form-card">
+
+    <span class="eyebrow"
+      data-ar="شارك مجتمعك"
+      data-en="HELP YOUR COMMUNITY">
+      شارك مجتمعك
+    </span>
+
+    <h1 data-ar="إضافة بلاغ جديد" data-en="Create a report">
+      إضافة بلاغ جديد
+    </h1>
+
+    <form id="reportForm">
+
+      <label data-ar="نوع البلاغ" data-en="Report type">
+        نوع البلاغ
+      </label>
+
+      <select name="item_type" required>
+        <option value="lost" data-ar="غرض مفقود" data-en="Lost item">
+          غرض مفقود
+        </option>
+        <option value="found" data-ar="غرض موجود" data-en="Found item">
+          غرض موجود
+        </option>
+      </select>
+
+      <label data-ar="عنوان البلاغ" data-en="Item title">
+        عنوان البلاغ
+      </label>
+      <input name="title" required maxlength="150">
+
+      <label data-ar="التصنيف" data-en="Category">
+        التصنيف
+      </label>
+      <select name="category_id" id="categorySelect">
+        <option value="" data-ar="بدون تصنيف" data-en="No category">
+          بدون تصنيف
+        </option>
+      </select>
+
+      <label data-ar="الوصف" data-en="Description">
+        الوصف
+      </label>
+      <textarea name="description" rows="4" maxlength="2000"></textarea>
+
+      <label data-ar="مكان الفقد أو العثور" data-en="Location">
+        مكان الفقد أو العثور
+      </label>
+      <input name="location" maxlength="250">
+
+      <label data-ar="اختر صورة (اختياري)" data-en="Choose an image (optional)">
+        اختر صورة (اختياري)
+      </label>
+
+      <input
+        name="image"
+        id="imageInput"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+      >
+
+      <p class="muted"
+         data-ar="الأنواع المدعومة: JPG و PNG و WEBP. الحد الأقصى 5 ميجابايت."
+         data-en="Supported formats: JPG, PNG and WEBP. Maximum size: 5 MB.">
+        الأنواع المدعومة: JPG و PNG و WEBP. الحد الأقصى 5 ميجابايت.
+      </p>
+
+      <div id="imagePreview"></div>
+
+      <button
+        class="btn btn-gold btn-full"
+        type="submit"
+        data-ar="نشر البلاغ"
+        data-en="Publish report">
+        نشر البلاغ
+      </button>
+
+      <p id="formMessage" class="form-message" role="status"></p>
+
+    </form>
+  </section>
+</main>
+
+<script src="app.js"></script>
+<script>
+  requireLogin();
+  loadCategories();
+  bindReportForm();
+</script>
+
+</body>
+</html>
