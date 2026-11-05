@@ -65,7 +65,12 @@ export async function onRequestPost({ request, env }) {
 
     stage = "hash_password";
 
-    const hash = await hashPassword(password);
+console.log("REGISTER: Before hashPassword");
+
+const hash = await hashPassword(password);
+
+console.log("REGISTER: After hashPassword");
+console.log("REGISTER: Hash generated successfully");
 
     stage = "insert_user";
 
@@ -101,9 +106,10 @@ export async function onRequestPost({ request, env }) {
       stack: error?.stack
     });
 
-    return fail(
-      "فشل التسجيل في المرحلة: " + stage,
-      500
-    );
+   return fail(
+  "فشل التسجيل في المرحلة: " + stage +
+  " | السبب: " + (error?.message || "Unknown error"),
+  500
+);
   }
 }
