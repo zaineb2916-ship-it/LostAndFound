@@ -32,15 +32,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const t = (ar, en) => currentLang() === "ar" ? ar : en;
 
-// API: قراءة الاستجابة وإظهار تفاصيل الأخطاء
 async function api(url, options = {}) {
+  const headers = { ...(options.headers || {}) };
+
+  // لا نضيف JSON Content-Type عند إرسال FormData
+  if (!(options.body instanceof FormData) && options.body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const r = await fetch(url, {
     ...options,
     credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {})
-    }
+    headers
   });
 
   const raw = await r.text();
@@ -147,25 +150,108 @@ async function loadCategories() {
   }
 }
 
+// معاينة الصورة قبل رفعها
+function bindImagePreview() {
+  const input = document.getElementById("imageInput");
+  const preview = document.getElementById("imagePreview");
+
+  if (!input || !preview) return;
+
+  input.addEventListener("change", () => {
+    preview.replaceChildren();
+
+    const file = input.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      input.value = "";
+      showMessage(
+        document.getElementById("formMessage"),
+        t("حجم الصورة يجب ألا يتجاوز 5 ميجابايت.", "Image must not exceed 5 MB.")
+      );
+      return;
+    }
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      input.value = "";
+      showMessage(
+        document.getElementById("formMessage"),
+        t("نوع الصورة غير مدعوم.", "Unsupported image type.")
+      );
+      return;
+    }
+
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    img.alt = t("معاينة الصورة", "Image preview");
+    img.style.maxWidth = "100%";
+    img.style.maxHeight = "220px";
+    img.style.marginTop = "12px";
+    img.style.borderRadius = "10px";
+
+    img.onload = () => URL.revokeObjectURL(img.src);
+
+    preview.appendChild(img);
+  });
+}
+
 function bindReportForm() {
   const f = document.getElementById("reportForm");
   if (!f) return;
 
+  bindImagePreview();
+
   f.addEventListener("submit", async e => {
     e.preventDefault();
 
-    const b = f.querySelector("button");
-    b.disabled = true;
-
+    const b = f.querySelector("button[type=submit]");
     const msg = document.getElementById("formMessage");
 
-    try {
-      const x = Object.fromEntries(
-        new FormData(f).entries()
-      );
+    b.disabled = true;
 
+    try {
+      const formData = new FormData(f);
+      const imageFile = formData.get("image");
+
+      let imageUrl = null;
+
+      // أولاً: رفع الصورة إلى ImageKit عند اختيارها
+      if (imageFile && imageFile.size > 0) {
+        showMessage(
+          msg,
+          t("جارٍ رفع الصورة...", "Uploading image...")
+        );
+
+        const uploadData = new FormData();
+        uploadData.append("image", imageFile);
+
+        const uploadResult = await api("/api/upload", {
+          method: "POST",
+          body: uploadData
+        });
+
+        if (!uploadResult.image_url) {
+          throw new Error(
+            t("لم يتم استلام رابط الصورة.", "Image URL was not returned.")
+          );
+        }
+
+        imageUrl = uploadResult.image_url;
+      }
+
+      // ثانياً: تجهيز بيانات البلاغ
+      const x = Object.fromEntries(formData.entries());
+
+      delete x.image;
+      x.image_url = imageUrl;
       x.category_id = x.category_id || null;
 
+      showMessage(
+        msg,
+        t("جارٍ نشر البلاغ...", "Publishing report...")
+      );
+
+      // ثالثاً: حفظ البلاغ ورابط الصورة في D1
       await api("/api/items", {
         method: "POST",
         body: JSON.stringify(x)
@@ -179,11 +265,15 @@ function bindReportForm() {
 
       f.reset();
 
+      const preview = document.getElementById("imagePreview");
+      if (preview) preview.replaceChildren();
+
       setTimeout(() => {
         location.href = "dashboard.html";
-      }, 900);
+      }, 1200);
 
     } catch (err) {
+      console.error("Report submission error:", err);
       showMessage(msg, err.message);
 
     } finally {
