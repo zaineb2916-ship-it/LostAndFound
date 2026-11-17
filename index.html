@@ -1,21 +1,189 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LostAndFound | المفقودات والموجودات</title><link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LostAndFound | المفقودات والموجودات</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">L</span> Lost<span>And</span>Found</a>
-<nav><a href="index.html" data-ar="الرئيسية" data-en="Home">الرئيسية</a><a href="#latest" data-ar="البلاغات" data-en="Reports">البلاغات</a><a href="login.html" data-ar="دخول" data-en="Login">دخول</a><a class="nav-cta" href="register.html" data-ar="إنشاء حساب" data-en="Create account">إنشاء حساب</a></nav>
-<button class="lang" id="langBtn" type="button">EN</button></header>
+
+<header class="topbar">
+  <a class="brand" href="index.html">
+    <span class="brand-mark">L</span>
+    Lost<span>And</span>Found
+  </a>
+
+  <nav>
+    <a href="index.html" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
+    <a href="#latest" data-ar="البلاغات" data-en="Reports">البلاغات</a>
+    <a href="login.html" data-ar="دخول" data-en="Login">دخول</a>
+    <a class="nav-cta" href="register.html"
+       data-ar="إنشاء حساب" data-en="Create account">إنشاء حساب</a>
+  </nav>
+
+  <button class="lang" id="langBtn" type="button">EN</button>
+</header>
+
 <main>
-<section class="hero"><div class="hero-copy"><span class="eyebrow" data-ar="منصة المفقودات والموجودات" data-en="Lost & Found Community Platform">منصة المفقودات والموجودات</span>
-<h1 data-ar="ما فُقد قد يعود إليك." data-en="What was lost can find its way back.">ما فُقد قد يعود إليك.</h1>
-<p data-ar="منصة تساعد مجتمعك على الإبلاغ عن الأغراض المفقودة والعثور على أصحاب الأغراض الموجودة بطريقة سهلة ومنظمة." data-en="A simple way for your community to report lost items and help found belongings reach their owners.">منصة تساعد مجتمعك على الإبلاغ عن الأغراض المفقودة والعثور على أصحاب الأغراض الموجودة بطريقة سهلة ومنظمة.</p>
-<div class="hero-actions"><a class="btn btn-gold" href="report.html" data-ar="أضف بلاغاً" data-en="Post a report">أضف بلاغاً</a><a class="btn btn-outline" href="#latest" data-ar="تصفح البلاغات" data-en="Browse reports">تصفح البلاغات</a></div></div>
-<div class="hero-art"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-symbol">⌕</div><div class="floating-card"><span class="dot"></span><span data-ar="معاً نعيد الأشياء لأصحابها" data-en="Together, things find their way home">معاً نعيد الأشياء لأصحابها</span></div></div></section>
-<section class="stats"><div><strong>01</strong><span data-ar="أبلغ عن المفقودات" data-en="Report lost items">أبلغ عن المفقودات</span></div><div><strong>02</strong><span data-ar="اعثر على الموجودات" data-en="Find found items">اعثر على الموجودات</span></div><div><strong>03</strong><span data-ar="تواصل لاسترجاعها" data-en="Request a return">تواصل لاسترجاعها</span></div></section>
-<section id="latest" class="section"><div class="section-heading"><div><span class="eyebrow" data-ar="آخر التحديثات" data-en="LATEST UPDATES">آخر التحديثات</span><h2 data-ar="أحدث البلاغات" data-en="Recent reports">أحدث البلاغات</h2></div><a class="text-link" href="login.html" data-ar="لوحة المستخدم ←" data-en="User dashboard →">لوحة المستخدم ←</a></div><div id="itemsGrid" class="items-grid"><p class="muted" data-ar="جارٍ تحميل البلاغات..." data-en="Loading reports...">جارٍ تحميل البلاغات...</p></div></section>
-</main><footer><span>© 2026 LostAndFound</span><span data-ar="منصة مجتمعية للمساعدة والتعاون" data-en="A community platform built on helping each other">منصة مجتمعية للمساعدة والتعاون</span></footer>
-<script src="app.js"></script><script>loadPublicItems();</script>
-</body></html>
+
+  <!-- القسم الرئيسي -->
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow"
+        data-ar="منصة المفقودات والموجودات"
+        data-en="Lost & Found Community Platform">
+        منصة المفقودات والموجودات
+      </span>
+
+      <h1
+        data-ar="ما فُقد قد يعود إليك."
+        data-en="What was lost can find its way back.">
+        ما فُقد قد يعود إليك.
+      </h1>
+
+      <p
+        data-ar="منصة تساعد مجتمعك على الإبلاغ عن الأغراض المفقودة والعثور على أصحاب الأغراض الموجودة بطريقة سهلة ومنظمة."
+        data-en="A simple way for your community to report lost items and help found belongings reach their owners.">
+        منصة تساعد مجتمعك على الإبلاغ عن الأغراض المفقودة والعثور على أصحاب الأغراض الموجودة بطريقة سهلة ومنظمة.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-gold" href="report.html"
+           data-ar="أضف بلاغاً" data-en="Post a report">
+          أضف بلاغاً
+        </a>
+
+        <a class="btn btn-outline" href="#latest"
+           data-ar="تصفح البلاغات" data-en="Browse reports">
+          تصفح البلاغات
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-art">
+      <div class="orbit orbit-one"></div>
+      <div class="orbit orbit-two"></div>
+      <div class="hero-symbol">⌕</div>
+
+      <div class="floating-card">
+        <span class="dot"></span>
+        <span data-ar="معاً نعيد الأشياء لأصحابها"
+              data-en="Together, things find their way home">
+          معاً نعيد الأشياء لأصحابها
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- خطوات استخدام المنصة -->
+  <section class="stats">
+    <div>
+      <strong>01</strong>
+      <span data-ar="أبلغ عن المفقودات"
+            data-en="Report lost items">أبلغ عن المفقودات</span>
+    </div>
+
+    <div>
+      <strong>02</strong>
+      <span data-ar="اعثر على الموجودات"
+            data-en="Find found items">اعثر على الموجودات</span>
+    </div>
+
+    <div>
+      <strong>03</strong>
+      <span data-ar="تواصل لاسترجاعها"
+            data-en="Request a return">تواصل لاسترجاعها</span>
+    </div>
+  </section>
+
+  <!-- البلاغات والتصنيف -->
+  <section id="latest" class="section">
+
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow"
+          data-ar="آخر التحديثات"
+          data-en="LATEST UPDATES">آخر التحديثات</span>
+
+        <h2 data-ar="تصفح البلاغات"
+            data-en="Browse reports">تصفح البلاغات</h2>
+      </div>
+
+      <a class="text-link" href="login.html"
+         data-ar="لوحة المستخدم ←"
+         data-en="User dashboard →">
+        لوحة المستخدم ←
+      </a>
+    </div>
+
+    <!-- البحث -->
+    <div class="report-filters">
+
+      <input
+        type="search"
+        id="reportSearch"
+        class="report-search"
+        placeholder="ابحث عن غرض..."
+        data-ar-placeholder="ابحث عن غرض..."
+        data-en-placeholder="Search for an item..."
+        aria-label="Search reports">
+
+      <!-- أزرار التصنيف -->
+      <div class="filter-buttons">
+
+        <button type="button"
+          class="filter-btn active"
+          data-filter="all"
+          onclick="filterPublicItems('all')">
+          <span data-ar="جميع البلاغات"
+                data-en="All reports">جميع البلاغات</span>
+        </button>
+
+        <button type="button"
+          class="filter-btn"
+          data-filter="lost"
+          onclick="filterPublicItems('lost')">
+          <span data-ar="الأغراض المفقودة"
+                data-en="Lost items">الأغراض المفقودة</span>
+        </button>
+
+        <button type="button"
+          class="filter-btn"
+          data-filter="found"
+          onclick="filterPublicItems('found')">
+          <span data-ar="الأغراض الموجودة"
+                data-en="Found items">الأغراض الموجودة</span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- مكان عرض البلاغات -->
+    <div id="itemsGrid" class="items-grid">
+      <p class="muted"
+         data-ar="جارٍ تحميل البلاغات..."
+         data-en="Loading reports...">
+        جارٍ تحميل البلاغات...
+      </p>
+    </div>
+
+  </section>
+</main>
+
+<footer>
+  <span>© 2026 LostAndFound</span>
+  <span data-ar="منصة مجتمعية للمساعدة والتعاون"
+        data-en="A community platform built on helping each other">
+    منصة مجتمعية للمساعدة والتعاون
+  </span>
+</footer>
+
+<script src="app.js"></script>
+<script>
+  loadPublicItems();
+</script>
+
+</body>
+</html>
