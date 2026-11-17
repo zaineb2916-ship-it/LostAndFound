@@ -1,1 +1,216 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>لوحة المستخدم | LostAndFound</title><link rel="stylesheet" href="style.css"></head><body><header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">L</span> Lost<span>And</span>Found</a><nav><a href="index.html" data-ar="الرئيسية" data-en="Home">الرئيسية</a><a href="report.html" data-ar="إضافة بلاغ" data-en="New report">إضافة بلاغ</a></nav><div class="top-actions"><button class="lang" id="langBtn">EN</button><button id="logoutBtn" class="btn btn-small btn-outline" data-ar="تسجيل الخروج" data-en="Log out">تسجيل الخروج</button></div></header><main class="dashboard"><div class="welcome-row"><div><span class="eyebrow" data-ar="مساحتك الشخصية" data-en="YOUR SPACE">مساحتك الشخصية</span><h1><span data-ar="مرحباً، " data-en="Welcome, ">مرحباً، </span><span id="userName">...</span></h1></div><a class="btn btn-gold" href="report.html" data-ar="+ إضافة بلاغ" data-en="+ New report">+ إضافة بلاغ</a></div><section class="section"><div class="section-heading"><h2 data-ar="بلاغاتي" data-en="My reports">بلاغاتي</h2></div><div id="myItems" class="items-grid"></div></section><section class="section"><div class="section-heading"><h2 data-ar="طلبات استرجاع أغراضي" data-en="Requests for my items">طلبات استرجاع أغراضي</h2></div><div id="incomingClaims" class="claims-list"></div></section><section class="section"><div class="section-heading"><h2 data-ar="طلباتي" data-en="My requests">طلباتي</h2></div><div id="myClaims" class="claims-list"></div></section></main><script src="app.js"></script><script>loadDashboard();document.getElementById("logoutBtn").addEventListener("click",logout);</script></body></html>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>لوحة المستخدم | LostAndFound</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="topbar">
+
+    <a class="brand" href="index.html">
+      <span class="brand-mark">L</span>
+      Lost<span>And</span>Found
+    </a>
+
+    <nav>
+      <a href="index.html"
+         data-ar="الرئيسية"
+         data-en="Home">الرئيسية</a>
+
+      <a href="report.html"
+         data-ar="إضافة بلاغ"
+         data-en="New report">إضافة بلاغ</a>
+    </nav>
+
+    <div class="top-actions">
+
+      <button class="lang" id="langBtn" type="button">
+        EN
+      </button>
+
+      <button
+        id="logoutBtn"
+        class="btn btn-small btn-outline"
+        type="button"
+        data-ar="تسجيل الخروج"
+        data-en="Log out">
+        تسجيل الخروج
+      </button>
+
+    </div>
+
+  </header>
+
+  <!-- Main Dashboard -->
+  <main class="dashboard">
+
+    <!-- Welcome Section -->
+    <section class="welcome-row">
+
+      <div>
+        <span class="eyebrow"
+              data-ar="مساحتك الشخصية"
+              data-en="YOUR PERSONAL SPACE">
+          مساحتك الشخصية
+        </span>
+
+        <h1>
+          <span data-ar="مرحباً، " data-en="Welcome, ">
+            مرحباً،
+          </span>
+
+          <span id="userName">...</span>
+        </h1>
+
+        <p class="muted"
+           data-ar="تابع بلاغاتك وطلبات استرجاع أغراضك من مكان واحد."
+           data-en="Manage your reports and return requests in one place.">
+          تابع بلاغاتك وطلبات استرجاع أغراضك من مكان واحد.
+        </p>
+      </div>
+
+      <a class="btn btn-gold"
+         href="report.html"
+         data-ar="+ إضافة بلاغ جديد"
+         data-en="+ Create New Report">
+        + إضافة بلاغ جديد
+      </a>
+
+    </section>
+
+    <!-- My Reports -->
+    <section class="section" id="myReportsSection">
+
+      <div class="section-heading">
+
+        <div>
+          <h2 data-ar="بلاغاتي" data-en="My Reports">
+            بلاغاتي
+          </h2>
+
+          <p class="muted"
+             data-ar="جميع الأغراض التي أبلغت عن فقدانها أو العثور عليها."
+             data-en="All items you have reported as lost or found.">
+            جميع الأغراض التي أبلغت عن فقدانها أو العثور عليها.
+          </p>
+        </div>
+
+        <a href="report.html"
+           class="btn btn-outline btn-small"
+           data-ar="+ بلاغ جديد"
+           data-en="+ New Report">
+          + بلاغ جديد
+        </a>
+
+      </div>
+
+      <div id="myItems" class="items-grid">
+
+        <div class="loading-state"
+             data-ar="جارٍ تحميل بلاغاتك..."
+             data-en="Loading your reports...">
+          جارٍ تحميل بلاغاتك...
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- Incoming Claims -->
+    <section class="section" id="incomingClaimsSection">
+
+      <div class="section-heading">
+
+        <div>
+          <h2 data-ar="طلبات استرجاع أغراضي"
+              data-en="Requests for My Items">
+            طلبات استرجاع أغراضي
+          </h2>
+
+          <p class="muted"
+             data-ar="الطلبات التي أرسلها أشخاص للمطالبة بأغراضك."
+             data-en="Requests submitted by people claiming your items.">
+            الطلبات التي أرسلها أشخاص للمطالبة بأغراضك.
+          </p>
+        </div>
+
+      </div>
+
+      <div id="incomingClaims" class="claims-list">
+
+        <div class="loading-state"
+             data-ar="جارٍ تحميل الطلبات..."
+             data-en="Loading requests...">
+          جارٍ تحميل الطلبات...
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- My Claims -->
+    <section class="section" id="myClaimsSection">
+
+      <div class="section-heading">
+
+        <div>
+          <h2 data-ar="طلباتي" data-en="My Requests">
+            طلباتي
+          </h2>
+
+          <p class="muted"
+             data-ar="تابع حالة طلبات الاسترجاع التي أرسلتها."
+             data-en="Track the status of your submitted return requests.">
+            تابع حالة طلبات الاسترجاع التي أرسلتها.
+          </p>
+        </div>
+
+      </div>
+
+      <div id="myClaims" class="claims-list">
+
+        <div class="loading-state"
+             data-ar="جارٍ تحميل طلباتك..."
+             data-en="Loading your requests...">
+          جارٍ تحميل طلباتك...
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+
+    <p data-ar="منصة المفقودات والموجودات"
+       data-en="Lost and Found Platform">
+      منصة المفقودات والموجودات
+    </p>
+
+    <p>LostAndFound © 2026</p>
+
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="app.js"></script>
+
+  <script>
+    loadDashboard();
+
+    document.getElementById("logoutBtn")
+      .addEventListener("click", logout);
+  </script>
+
+</body>
+</html>
