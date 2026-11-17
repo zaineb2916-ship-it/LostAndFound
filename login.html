@@ -1,1 +1,143 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>تسجيل الدخول | LostAndFound</title><link rel="stylesheet" href="style.css"></head><body class="auth-page"><header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">L</span> Lost<span>And</span>Found</a><a href="index.html" class="text-link" data-ar="الرئيسية" data-en="Home">الرئيسية</a><button class="lang" id="langBtn">EN</button></header><main class="auth-wrap"><section class="auth-card"><span class="eyebrow" data-ar="مرحباً بعودتك" data-en="WELCOME BACK">مرحباً بعودتك</span><h1 data-ar="تسجيل الدخول" data-en="Log in">تسجيل الدخول</h1><p class="muted" data-ar="أدخل بيانات حسابك للمتابعة." data-en="Enter your account details to continue.">أدخل بيانات حسابك للمتابعة.</p><form id="loginForm"><label>Email</label><input name="email" type="email" required autocomplete="email"><label data-ar="كلمة المرور" data-en="Password">كلمة المرور</label><input name="password" type="password" required autocomplete="current-password"><button class="btn btn-gold btn-full" type="submit" data-ar="دخول" data-en="Log in">دخول</button><p id="formMessage" class="form-message" role="status"></p></form><p class="auth-switch"><span data-ar="ليس لديك حساب؟" data-en="Don't have an account?">ليس لديك حساب؟</span> <a href="register.html" data-ar="إنشاء حساب" data-en="Create account">إنشاء حساب</a></p></section></main><script src="app.js"></script><script>bindAuthForm("loginForm","/api/login","dashboard.html");</script></body></html>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#142b45">
+  <meta name="description" content="تسجيل الدخول إلى منصة المفقودات والموجودات">
+  <title>تسجيل الدخول | LostAndFound</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="auth-page">
+
+  <header class="topbar">
+    <div class="container nav-container">
+
+      <a class="brand" href="index.html">
+        <span class="brand-mark">م</span>
+        <span class="brand-name">مفقودات<span>.</span></span>
+      </a>
+
+      <div class="nav-actions">
+        <a href="index.html"
+           class="login-link"
+           data-ar="الرئيسية"
+           data-en="Home">الرئيسية</a>
+
+        <button type="button" class="language-btn" id="langBtn">EN</button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="auth-wrap">
+
+    <section class="auth-card">
+
+      <div class="auth-heading">
+        <span class="eyebrow"
+              data-ar="مرحباً بعودتك"
+              data-en="WELCOME BACK">
+          مرحباً بعودتك
+        </span>
+
+        <h1 data-ar="تسجيل الدخول"
+            data-en="Log in">
+          تسجيل الدخول
+        </h1>
+
+        <p class="muted"
+           data-ar="أدخل بيانات حسابك للمتابعة."
+           data-en="Enter your account details to continue.">
+          أدخل بيانات حسابك للمتابعة.
+        </p>
+      </div>
+
+      <form id="loginForm">
+
+        <div class="form-group">
+          <label for="email"
+                 data-ar="البريد الإلكتروني"
+                 data-en="Email address">
+            البريد الإلكتروني
+          </label>
+
+          <input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="example@email.com"
+            required
+            autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label for="password"
+                 data-ar="كلمة المرور"
+                 data-en="Password">
+            كلمة المرور
+          </label>
+
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password">
+        </div>
+
+        <button
+          class="btn btn-gold btn-full"
+          type="submit"
+          data-ar="تسجيل الدخول"
+          data-en="Log in">
+          تسجيل الدخول
+        </button>
+
+        <p id="formMessage"
+           class="form-message"
+           role="status"
+           aria-live="polite"></p>
+
+      </form>
+
+      <div class="auth-switch">
+        <span data-ar="ليس لديك حساب؟"
+              data-en="Don't have an account?">
+          ليس لديك حساب؟
+        </span>
+
+        <a href="register.html"
+           data-ar="إنشاء حساب جديد"
+           data-en="Create an account">
+          إنشاء حساب جديد
+        </a>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p data-ar="منصة مجتمعية للمساعدة في إعادة المفقودات إلى أصحابها."
+         data-en="A community platform helping return lost items to their owners.">
+        منصة مجتمعية للمساعدة في إعادة المفقودات إلى أصحابها.
+      </p>
+
+      <span class="copyright">© 2026 Lost & Found</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+
+  <script>
+    bindAuthForm("loginForm", "/api/login", "dashboard.html");
+  </script>
+
+</body>
+</html>
