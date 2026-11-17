@@ -5,6 +5,10 @@ function currentLang() {
   return localStorage.getItem(LANG_KEY) || "ar";
 }
 
+function t(ar, en) {
+  return currentLang() === "ar" ? ar : en;
+}
+
 function applyLanguage(lang) {
   localStorage.setItem(LANG_KEY, lang);
   document.documentElement.lang = lang;
@@ -14,7 +18,6 @@ function applyLanguage(lang) {
     el.textContent = el.dataset[lang];
   });
 
-  // ترجمة العناصر التي تحتوي على placeholder
   document.querySelectorAll("[data-ar-placeholder][data-en-placeholder]")
     .forEach(el => {
       el.placeholder = lang === "ar"
@@ -22,10 +25,9 @@ function applyLanguage(lang) {
         : el.dataset.enPlaceholder;
     });
 
-  const b = document.getElementById("langBtn");
-  if (b) b.textContent = lang === "ar" ? "EN" : "عربي";
+  const button = document.getElementById("langBtn");
+  if (button) button.textContent = lang === "ar" ? "EN" : "عربي";
 
-  // إعادة عرض البلاغات باللغة المختارة
   if (typeof renderPublicItems === "function") {
     renderPublicItems();
   }
@@ -34,16 +36,26 @@ function applyLanguage(lang) {
 document.addEventListener("DOMContentLoaded", () => {
   applyLanguage(currentLang());
 
-  const b = document.getElementById("langBtn");
+  const langButton = document.getElementById("langBtn");
 
-  if (b) {
-    b.addEventListener("click", () => {
+  if (langButton) {
+    langButton.addEventListener("click", () => {
       applyLanguage(currentLang() === "ar" ? "en" : "ar");
     });
   }
-});
 
-const t = (ar, en) => currentLang() === "ar" ? ar : en;
+  // ربط البحث مباشرة عند تحميل الصفحة
+  const searchInput = document.getElementById("reportSearch");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", renderPublicItems);
+  }
+
+  // تحميل البلاغات من هنا أيضاً إذا كانت الصفحة الرئيسية
+  if (document.getElementById("itemsGrid")) {
+    loadPublicItems();
+  }
+});
 
 async function api(url, options = {}) {
   const headers = { ...(options.headers || {}) };
@@ -52,66 +64,49 @@ async function api(url, options = {}) {
     headers["Content-Type"] = "application/json";
   }
 
-  const r = await fetch(url, {
+  const response = await fetch(url, {
     ...options,
     credentials: "same-origin",
     headers
   });
 
-  const raw = await r.text();
+  const raw = await response.text();
   let data = {};
 
   try {
     data = JSON.parse(raw);
   } catch {
-    const title = raw.match(/<title[^>]*>(.*?)<\/title>/is);
-    const heading = raw.match(/<h2[^>]*>(.*?)<\/h2>/is);
-
-    const detail = heading?.[1]
-      ?.replace(/<[^>]*>/g, "")
-      .trim();
-
-    throw new Error(
-      `HTTP ${r.status}: ${
-        detail || title?.[1] || "استجابة غير صالحة من الخادم"
-      }`
-    );
+    throw new Error(`HTTP ${response.status}: استجابة غير صالحة من الخادم`);
   }
 
-  if (!r.ok) {
-    throw new Error(
-      data.error || data.message || `HTTP ${r.status}`
-    );
+  if (!response.ok) {
+    throw new Error(data.error || data.message || `HTTP ${response.status}`);
   }
 
   return data;
 }
 
-function showMessage(el, msg, ok = false) {
+function showMessage(el, message, success = false) {
   if (!el) return;
-
-  el.textContent = msg;
-  el.className = "form-message" + (ok ? " success" : "");
+  el.textContent = message;
+  el.className = "form-message" + (success ? " success" : "");
 }
 
 function bindAuthForm(id, url, next) {
   const form = document.getElementById(id);
   if (!form) return;
 
-  form.addEventListener("submit", async e => {
-    e.preventDefault();
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
 
-    const btn = form.querySelector("button[type=submit]");
-    btn.disabled = true;
+    const button = form.querySelector("button[type=submit]");
+    const message = document.getElementById("formMessage");
 
-    const msg = document.getElementById("formMessage");
-
-    showMessage(msg, t("جارٍ المعالجة...", "Please wait..."));
+    if (button) button.disabled = true;
+    showMessage(message, t("جارٍ المعالجة...", "Please wait..."));
 
     try {
-      const body = Object.fromEntries(
-        new FormData(form).entries()
-      );
+      const body = Object.fromEntries(new FormData(form).entries());
 
       await api(url, {
         method: "POST",
@@ -119,19 +114,17 @@ function bindAuthForm(id, url, next) {
       });
 
       showMessage(
-        msg,
+        message,
         t("تم بنجاح. جارٍ تحويلك...", "Success. Redirecting..."),
         true
       );
 
       location.href = next;
-
-    } catch (err) {
-      console.error("Registration/API error:", err);
-      showMessage(msg, err.message);
-
+    } catch (error) {
+      console.error(error);
+      showMessage(message, error.message);
     } finally {
-      btn.disabled = false;
+      if (button) button.disabled = false;
     }
   });
 }
@@ -145,24 +138,23 @@ async function requireLogin() {
 }
 
 async function loadCategories() {
-  const s = document.getElementById("categorySelect");
-  if (!s) return;
+  const select = document.getElementById("categorySelect");
+  if (!select) return;
 
   try {
-    const d = await api("/api/categories");
+    const data = await api("/api/categories");
 
-    for (const c of d.categories) {
-      const o = document.createElement("option");
-      o.value = c.id;
-      o.textContent = c.name;
-      s.appendChild(o);
+    for (const category of data.categories || []) {
+      const option = document.createElement("option");
+      option.value = category.id;
+      option.textContent = category.name;
+      select.appendChild(option);
     }
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error(error);
   }
 }
 
-// معاينة الصورة قبل رفعها
 function bindImagePreview() {
   const input = document.getElementById("imageInput");
   const preview = document.getElementById("imagePreview");
@@ -179,10 +171,7 @@ function bindImagePreview() {
       input.value = "";
       showMessage(
         document.getElementById("formMessage"),
-        t(
-          "حجم الصورة يجب ألا يتجاوز 5 ميجابايت.",
-          "Image must not exceed 5 MB."
-        )
+        t("حجم الصورة يجب ألا يتجاوز 5 ميجابايت.", "Image must not exceed 5 MB.")
       );
       return;
     }
@@ -196,46 +185,42 @@ function bindImagePreview() {
       return;
     }
 
-    const img = document.createElement("img");
-    img.src = URL.createObjectURL(file);
-    img.alt = t("معاينة الصورة", "Image preview");
-    img.style.maxWidth = "100%";
-    img.style.maxHeight = "220px";
-    img.style.marginTop = "12px";
-    img.style.borderRadius = "10px";
+    const image = document.createElement("img");
+    const objectUrl = URL.createObjectURL(file);
 
-    img.onload = () => URL.revokeObjectURL(img.src);
+    image.src = objectUrl;
+    image.alt = t("معاينة الصورة", "Image preview");
+    image.style.maxWidth = "100%";
+    image.style.maxHeight = "220px";
+    image.style.marginTop = "12px";
+    image.style.borderRadius = "12px";
 
-    preview.appendChild(img);
+    image.onload = () => URL.revokeObjectURL(objectUrl);
+    preview.appendChild(image);
   });
 }
 
 function bindReportForm() {
-  const f = document.getElementById("reportForm");
-  if (!f) return;
+  const form = document.getElementById("reportForm");
+  if (!form) return;
 
   bindImagePreview();
 
-  f.addEventListener("submit", async e => {
-    e.preventDefault();
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
 
-    const b = f.querySelector("button[type=submit]");
-    const msg = document.getElementById("formMessage");
+    const button = form.querySelector("button[type=submit]");
+    const message = document.getElementById("formMessage");
 
-    b.disabled = true;
+    if (button) button.disabled = true;
 
     try {
-      const formData = new FormData(f);
+      const formData = new FormData(form);
       const imageFile = formData.get("image");
-
       let imageUrl = null;
 
-      // أولاً: رفع الصورة إلى ImageKit
       if (imageFile && imageFile.size > 0) {
-        showMessage(
-          msg,
-          t("جارٍ رفع الصورة...", "Uploading image...")
-        );
+        showMessage(message, t("جارٍ رفع الصورة...", "Uploading image..."));
 
         const uploadData = new FormData();
         uploadData.append("image", imageFile);
@@ -246,42 +231,32 @@ function bindReportForm() {
         });
 
         if (!uploadResult.image_url) {
-          throw new Error(
-            t(
-              "لم يتم استلام رابط الصورة.",
-              "Image URL was not returned."
-            )
-          );
+          throw new Error(t("لم يتم استلام رابط الصورة.", "Image URL was not returned."));
         }
 
         imageUrl = uploadResult.image_url;
       }
 
-      // ثانياً: تجهيز بيانات البلاغ
-      const x = Object.fromEntries(formData.entries());
+      const itemData = Object.fromEntries(formData.entries());
 
-      delete x.image;
-      x.image_url = imageUrl;
-      x.category_id = x.category_id || null;
+      delete itemData.image;
+      itemData.image_url = imageUrl;
+      itemData.category_id = itemData.category_id || null;
 
-      showMessage(
-        msg,
-        t("جارٍ نشر البلاغ...", "Publishing report...")
-      );
+      showMessage(message, t("جارٍ نشر البلاغ...", "Publishing report..."));
 
-      // ثالثاً: حفظ البلاغ في قاعدة البيانات
       await api("/api/items", {
         method: "POST",
-        body: JSON.stringify(x)
+        body: JSON.stringify(itemData)
       });
 
       showMessage(
-        msg,
+        message,
         t("تم نشر البلاغ بنجاح.", "Report published successfully."),
         true
       );
 
-      f.reset();
+      form.reset();
 
       const preview = document.getElementById("imagePreview");
       if (preview) preview.replaceChildren();
@@ -289,170 +264,189 @@ function bindReportForm() {
       setTimeout(() => {
         location.href = "dashboard.html";
       }, 1200);
-
-    } catch (err) {
-      console.error("Report submission error:", err);
-      showMessage(msg, err.message);
-
+    } catch (error) {
+      console.error(error);
+      showMessage(message, error.message);
     } finally {
-      b.disabled = false;
+      if (button) button.disabled = false;
     }
   });
 }
 
-function esc(v = "") {
-  return String(v).replace(/[&<>"']/g, c => ({
+function esc(value = "") {
+  return String(value).replace(/[&<>"']/g, char => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
     "'": "&#39;"
-  }[c]));
+  }[char]));
 }
 
-// إنشاء بطاقة البلاغ
+// توحيد النص العربي لتسهيل البحث
+function normalizeSearch(value = "") {
+  return String(value)
+    .toLowerCase()
+    .normalize("NFKC")
+    .replace(/[\u064B-\u065F\u0670]/g, "")
+    .replace(/[إأآٱ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/ة/g, "ه")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function itemCard(item, owner = false) {
   const found = item.item_type === "found";
   const title = esc(item.title);
-  const desc = esc(item.description || "");
-  const loc = esc(item.location || "");
+  const description = esc(item.description || "");
+  const locationText = esc(item.location || "");
 
   const image = item.image_url
-    ? `<img class="item-image" src="${esc(item.image_url)}" alt="" loading="lazy" onerror="this.style.display='none'">`
-    : "";
+    ? `<img class="item-image" src="${esc(item.image_url)}" alt="${title}" loading="lazy" onerror="this.style.display='none'">`
+    : `<div class="item-image-placeholder">⌕</div>`;
+
+  let dateText = "";
+
+  if (item.created_at) {
+    const date = new Date(item.created_at);
+    if (!Number.isNaN(date.getTime())) {
+      dateText = date.toLocaleDateString(
+        currentLang() === "ar" ? "ar" : "en"
+      );
+    }
+  }
 
   return `
     <article class="item-card">
       ${image}
 
-      <span class="tag ${found ? "" : "lost"}">
-        ${found ? t("غرض موجود", "Found") : t("غرض مفقود", "Lost")}
-      </span>
-
-      <h3>${title}</h3>
-
-      <p>
-        ${desc || t("لا يوجد وصف إضافي.", "No additional description.")}
-      </p>
-
-      <div class="item-meta">
-        <span>
-          ⌖ ${loc || t("الموقع غير محدد", "Location not specified")}
+      <div class="item-card-content">
+        <span class="tag ${found ? "found" : "lost"}">
+          ${found ? t("غرض موجود", "Found item") : t("غرض مفقود", "Lost item")}
         </span>
 
-        <span>
-          ${new Date(item.created_at).toLocaleDateString(
-            currentLang() === "ar" ? "ar" : "en"
-          )}
-        </span>
+        <h3>${title}</h3>
+
+        <p class="item-description">
+          ${description || t("لا يوجد وصف إضافي.", "No additional description.")}
+        </p>
+
+        <div class="item-meta">
+          <span>⌖ ${locationText || t("الموقع غير محدد", "Location not specified")}</span>
+          <span>${dateText}</span>
+        </div>
+
+        ${
+          owner
+            ? `<p class="muted">${t("الحالة: ", "Status: ")}${esc(item.status)}</p>`
+            : `<button class="btn btn-outline claim-button" onclick="makeClaim(${Number(item.id)})">${t("طلب استرجاع", "Request return")}</button>`
+        }
       </div>
-
-      ${
-        owner
-          ? `<p class="muted">${t("الحالة: ", "Status: ")}${esc(item.status)}</p>`
-          : `<button class="btn btn-outline" onclick="makeClaim(${Number(item.id)})">${t("طلب استرجاع", "Request return")}</button>`
-      }
     </article>
   `;
 }
 
-// ======================================
-// البحث والتصفية في الصفحة الرئيسية
-// ======================================
-
+// بيانات الصفحة الرئيسية
 let publicItems = [];
 let publicFilter = "all";
 
-// عرض البلاغات حسب التصنيف وكلمة البحث
 function renderPublicItems() {
   const grid = document.getElementById("itemsGrid");
   if (!grid) return;
 
   const searchInput = document.getElementById("reportSearch");
-
-  const searchText = searchInput
-    ? searchInput.value.trim().toLowerCase()
-    : "";
+  const searchText = normalizeSearch(searchInput ? searchInput.value : "");
 
   const filtered = publicItems.filter(item => {
     const matchesType =
-      publicFilter === "all" ||
-      item.item_type === publicFilter;
+      publicFilter === "all" || item.item_type === publicFilter;
 
-    const searchableText = [
-      item.title || "",
-      item.description || "",
-      item.location || "",
-      item.category_name || ""
-    ].join(" ").toLowerCase();
+    const searchableText = normalizeSearch([
+      item.title,
+      item.description,
+      item.location,
+      item.category_name,
+      item.owner_name
+    ].filter(Boolean).join(" "));
 
-    const matchesSearch = searchableText.includes(searchText);
-
-    return matchesType && matchesSearch;
+    return matchesType && searchableText.includes(searchText);
   });
 
   if (filtered.length) {
-    grid.innerHTML = filtered
-      .map(item => itemCard(item))
-      .join("");
+    grid.innerHTML = filtered.map(item => itemCard(item)).join("");
   } else {
     grid.innerHTML = `
       <div class="empty">
-        ${t(
-          "لا توجد بلاغات مطابقة للبحث أو التصنيف.",
-          "No reports match your search or filter."
-        )}
+        <span class="empty-icon">⌕</span>
+        <strong>${t("لم نعثر على نتائج", "No results found")}</strong>
+        <p>${t("جرّبي كلمة بحث أخرى أو غيّري التصنيف.", "Try another search term or change the filter.")}</p>
+        <button type="button" class="btn btn-outline" onclick="clearPublicSearch()">
+          ${t("مسح البحث", "Clear search")}
+        </button>
       </div>
     `;
   }
 
-  // تحديد زر التصفية النشط
-  document.querySelectorAll(".filter-btn").forEach(btn => {
-    btn.classList.toggle(
+  document.querySelectorAll(".filter-btn").forEach(button => {
+    button.classList.toggle(
       "active",
-      btn.dataset.filter === publicFilter
+      button.dataset.filter === publicFilter
     );
   });
+
+  const count = document.getElementById("resultsCount");
+  if (count) {
+    count.textContent = t(
+      `عدد النتائج: ${filtered.length}`,
+      `Results: ${filtered.length}`
+    );
+  }
 }
 
-// تغيير نوع البلاغ المعروض
 function filterPublicItems(type) {
-  if (!["all", "lost", "found"].includes(type)) {
-    return;
-  }
+  if (!["all", "lost", "found"].includes(type)) return;
 
   publicFilter = type;
   renderPublicItems();
 }
 
-// تحميل البلاغات من قاعدة البيانات
+function clearPublicSearch() {
+  const input = document.getElementById("reportSearch");
+  if (input) input.value = "";
+
+  publicFilter = "all";
+  renderPublicItems();
+}
+
 async function loadPublicItems() {
   const grid = document.getElementById("itemsGrid");
   if (!grid) return;
 
+  grid.innerHTML = `
+    <div class="loading-state">
+      ${t("جارٍ تحميل البلاغات...", "Loading reports...")}
+    </div>
+  `;
+
   try {
-    const d = await api("/api/items");
-
-    publicItems = Array.isArray(d.items) ? d.items : [];
-
+    const data = await api("/api/items");
+    publicItems = Array.isArray(data.items) ? data.items : [];
     renderPublicItems();
+  } catch (error) {
+    console.error("Loading public items failed:", error);
 
-    // ربط مربع البحث مرة واحدة فقط
-    const searchInput = document.getElementById("reportSearch");
-
-    if (searchInput && !searchInput.dataset.bound) {
-      searchInput.addEventListener("input", renderPublicItems);
-      searchInput.dataset.bound = "true";
-    }
-
-  } catch (e) {
-    grid.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+    grid.innerHTML = `
+      <div class="empty">
+        ${t("تعذر تحميل البلاغات. يرجى تحديث الصفحة.", "Could not load reports. Please refresh the page.")}
+        <p>${esc(error.message)}</p>
+        <button class="btn btn-outline" onclick="loadPublicItems()">
+          ${t("إعادة المحاولة", "Try again")}
+        </button>
+      </div>
+    `;
   }
 }
-
-// ======================================
-// طلب استرجاع غرض
-// ======================================
 
 async function makeClaim(id) {
   if (!confirm(t(
@@ -472,41 +466,39 @@ async function makeClaim(id) {
     });
 
     alert(t("تم إرسال طلبك.", "Your request has been sent."));
-
-  } catch (e) {
-    alert(e.message);
+  } catch (error) {
+    alert(error.message);
   }
 }
 
-// ======================================
-// لوحة التحكم
-// ======================================
-
 async function loadDashboard() {
   try {
-    const d = await api("/api/dashboard");
+    const data = await api("/api/dashboard");
 
-    document.getElementById("userName").textContent = d.user.name;
+    const userName = document.getElementById("userName");
+    const myItems = document.getElementById("myItems");
 
-    document.getElementById("myItems").innerHTML = d.items.length
-      ? d.items.map(x => itemCard(x, true)).join("")
-      : `<div class="empty">${t("لم تضف أي بلاغ بعد.", "You have not posted any reports yet.")}</div>`;
+    if (userName) userName.textContent = data.user.name;
 
-    renderClaims("incomingClaims", d.incomingClaims, true);
-    renderClaims("myClaims", d.myClaims, false);
+    if (myItems) {
+      myItems.innerHTML = data.items.length
+        ? data.items.map(item => itemCard(item, true)).join("")
+        : `<div class="empty">${t("لم تضف أي بلاغ بعد.", "You have not posted any reports yet.")}</div>`;
+    }
 
-  } catch (e) {
+    renderClaims("incomingClaims", data.incomingClaims || [], true);
+    renderClaims("myClaims", data.myClaims || [], false);
+  } catch (error) {
     location.href = "login.html";
   }
 }
 
-// عرض طلبات الاسترجاع
 function renderClaims(id, claims, incoming) {
-  const el = document.getElementById(id);
-  if (!el) return;
+  const element = document.getElementById(id);
+  if (!element) return;
 
   if (!claims.length) {
-    el.innerHTML = `
+    element.innerHTML = `
       <div class="empty">
         ${t("لا توجد طلبات حالياً.", "No requests yet.")}
       </div>
@@ -514,35 +506,26 @@ function renderClaims(id, claims, incoming) {
     return;
   }
 
-  el.innerHTML = claims.map(c => `
+  element.innerHTML = claims.map(claim => `
     <div class="claim-row">
       <div>
-        <strong>${esc(c.item_title)}</strong>
-
+        <strong>${esc(claim.item_title)}</strong>
         <p>
           ${
             incoming
-              ? t("من: ", "From: ") + esc(c.claimant_name)
-              : t("إلى: ", "To: ") + esc(c.owner_name)
+              ? t("من: ", "From: ") + esc(claim.claimant_name)
+              : t("إلى: ", "To: ") + esc(claim.owner_name)
           }
-          · ${esc(c.message || "")}
+          · ${esc(claim.message || "")}
         </p>
-
-        <span class="tag">${esc(c.status)}</span>
+        <span class="tag">${esc(claim.status)}</span>
       </div>
 
       ${
         incoming
           ? `<div class="claim-actions">
-              <button class="btn btn-outline btn-small"
-                onclick="updateClaim(${Number(c.id)},'accepted')">
-                ${t("قبول", "Accept")}
-              </button>
-
-              <button class="btn btn-outline btn-small"
-                onclick="updateClaim(${Number(c.id)},'rejected')">
-                ${t("رفض", "Decline")}
-              </button>
+              <button class="btn btn-outline btn-small" onclick="updateClaim(${Number(claim.id)}, 'accepted')">${t("قبول", "Accept")}</button>
+              <button class="btn btn-outline btn-small" onclick="updateClaim(${Number(claim.id)}, 'rejected')">${t("رفض", "Decline")}</button>
             </div>`
           : ""
       }
@@ -550,25 +533,19 @@ function renderClaims(id, claims, incoming) {
   `).join("");
 }
 
-// قبول أو رفض طلب الاسترجاع
 async function updateClaim(id, status) {
   try {
     await api("/api/claims", {
       method: "PATCH",
-      body: JSON.stringify({
-        claim_id: id,
-        status
-      })
+      body: JSON.stringify({ claim_id: id, status })
     });
 
     loadDashboard();
-
-  } catch (e) {
-    alert(e.message);
+  } catch (error) {
+    alert(error.message);
   }
 }
 
-// تسجيل الخروج
 async function logout() {
   try {
     await api("/api/logout", {
