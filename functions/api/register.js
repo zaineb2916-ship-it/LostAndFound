@@ -13,12 +13,21 @@ export async function onRequestPost({ request, env }) {
   let stage = "start";
 
   try {
+    // 1. Check session secret
     stage = "check_secret";
 
     if (!requiredSecret(env)) {
       return fail("إعداد SESSION_SECRET غير مكتمل.", 500);
     }
 
+    // 2. Check database
+    stage = "check_database";
+
+    if (!env.DB) {
+      throw new Error("D1 binding DB is missing");
+    }
+
+    // 3. Read request body
     stage = "read_body";
 
     const d = await body(request);
@@ -36,23 +45,26 @@ export async function onRequestPost({ request, env }) {
     const email = d.email.trim().toLowerCase();
     const password = d.password;
 
+    // 4. Validate name
     if (name.length < 2 || name.length > 100) {
       return fail("الاسم يجب أن يكون بين حرفين و100 حرف.");
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 190) {
+    // 5. Validate email
+    if (
+      email.length > 190 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
       return fail("البريد الإلكتروني غير صالح.");
     }
 
+    // 6. Validate password
     if (password.length < 8 || password.length > 128) {
       return fail("كلمة المرور يجب أن تكون 8 أحرف على الأقل.");
     }
 
-    stage = "check_database";
-
-    if (!env.DB) {
-      throw new Error("D1 binding DB is missing");
-    }
+    // 7. Check existing account
+    stage = "check_existing_user";
 
     const exists = await env.DB
       .prepare("SELECT id FROM Users WHERE email = ?")
@@ -63,15 +75,12 @@ export async function onRequestPost({ request, env }) {
       return fail("هذا البريد مسجل مسبقاً.", 409);
     }
 
+    // 8. Hash password
     stage = "hash_password";
 
-console.log("REGISTER: Before hashPassword");
+    const hash = await hashPassword(password);
 
-const hash = await hashPassword(password);
-
-console.log("REGISTER: After hashPassword");
-console.log("REGISTER: Hash generated successfully");
-
+    // 9. Insert user
     stage = "insert_user";
 
     const result = await env.DB
@@ -81,6 +90,11 @@ console.log("REGISTER: Hash generated successfully");
       .bind(name, email, hash)
       .run();
 
+    if (!result.success || !result.meta?.last_row_id) {
+      throw new Error("User insertion failed");
+    }
+
+    // 10. Create session
     stage = "create_session";
 
     const user = {
@@ -89,27 +103,38 @@ console.log("REGISTER: Hash generated successfully");
       email
     };
 
-    const token = await makeSession(user, env.SESSION_SECRET);
+    const token = await makeSession(
+      user,
+      env.SESSION_SECRET
+    );
 
+    // 11. Return response
     stage = "send_response";
 
     return json(
       { user },
       201,
-      { "Set-Cookie": sessionCookie(token) }
+      {
+        "Set-Cookie": sessionCookie(token)
+      }
     );
 
   } catch (error) {
     console.error("REGISTER ERROR:", {
       stage,
-      message: error?.message,
-      stack: error?.stack
+      message: error?.message
     });
 
-   return fail(
-  "فشل التسجيل في المرحلة: " + stage +
-  " | السبب: " + (error?.message || "Unknown error"),
-  500
-);
+    if (
+      stage === "insert_user" &&
+      /unique constraint/i.test(error?.message || "")
+    ) {
+      return fail("هذا البريد مسجل مسبقاً.", 409);
+    }
+
+    return fail(
+      "تعذر إنشاء الحساب حالياً. يرجى المحاولة لاحقاً.",
+      500
+    );
   }
 }
