@@ -9,16 +9,30 @@ const b64 = (bytes) =>
   )
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
-    .replace(/=+$/,"");
+    .replace(/=+$/, "");
 
-const unb64 = (s) =>
-  Uint8Array.from(
-    atob(
-      s.replace(/-/g, "+").replace(/_/g, "/") +
-      "===".slice((s.length + 3) % 4)
-    ),
+const unb64 = (value) => {
+  if (
+    typeof value !== "string" ||
+    !/^[A-Za-z0-9_-]+$/.test(value) ||
+    value.length % 4 === 1
+  ) {
+    throw new Error("Invalid Base64 data");
+  }
+
+  const standard = value
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const padded = standard + "=".repeat(
+    (4 - standard.length % 4) % 4
+  );
+
+  return Uint8Array.from(
+    atob(padded),
     c => c.charCodeAt(0)
   );
+};
 
 export function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -60,7 +74,7 @@ async function hmac(secret, data) {
       hash: "SHA-256"
     },
     false,
-    ["sign", "verify"]
+    ["sign"]
   );
 
   return new Uint8Array(
@@ -84,23 +98,34 @@ export async function makeSession(user, secret) {
     )
   );
 
-  return payload + "." + b64(await hmac(secret, payload));
+  const signature = await hmac(secret, payload);
+
+  return payload + "." + b64(signature);
 }
 
 export async function getUser(request, env) {
-  const token = cookie(request);
-
-  if (!token || !env.SESSION_SECRET) return null;
-
-  const [payload, sig, ...rest] = token.split(".");
-
-  if (!payload || !sig || rest.length) return null;
-
   try {
-    const expected = await hmac(env.SESSION_SECRET, payload);
-    const actual = unb64(sig);
+    const token = cookie(request);
 
-    if (expected.length !== actual.length) return null;
+    if (
+      !token ||
+      !env.SESSION_SECRET ||
+      token.length > 4096
+    ) {
+      return null;
+    }
+
+    const parts = token.split(".");
+
+    if (parts.length !== 2) return null;
+
+    const [payload, signature] = parts;
+
+    if (!payload || !signature) return null;
+
+    const actual = unb64(signature);
+
+    if (actual.length !== 32) return null;
 
     const key = await crypto.subtle.importKey(
       "raw",
@@ -122,13 +147,25 @@ export async function getUser(request, env) {
 
     if (!valid) return null;
 
-    const u = JSON.parse(
-      new TextDecoder().decode(unb64(payload))
+    const decoded = new TextDecoder().decode(
+      unb64(payload)
     );
 
-    if (!u.id || u.exp < Date.now()) return null;
+    const user = JSON.parse(decoded);
 
-    return u;
+    if (
+      !user ||
+      typeof user !== "object" ||
+      !user.id ||
+      typeof user.name !== "string" ||
+      typeof user.email !== "string" ||
+      !Number.isFinite(user.exp) ||
+      user.exp <= Date.now()
+    ) {
+      return null;
+    }
+
+    return user;
 
   } catch (error) {
     console.error("GET USER ERROR:", error.message);
@@ -145,14 +182,18 @@ export function clearCookie() {
 }
 
 export async function hashPassword(password) {
-  try {
-    console.log("HASH STEP 1: Start");
+  if (
+    typeof password !== "string" ||
+    password.length < 8 ||
+    password.length > 128
+  ) {
+    throw new Error("Invalid password length");
+  }
 
+  try {
     const salt = crypto.getRandomValues(
       new Uint8Array(16)
     );
-
-    console.log("HASH STEP 2: Salt generated");
 
     const key = await crypto.subtle.importKey(
       "raw",
@@ -162,12 +203,10 @@ export async function hashPassword(password) {
       ["deriveBits"]
     );
 
-    console.log("HASH STEP 3: Key imported");
-
     const bits = await crypto.subtle.deriveBits(
       {
         name: "PBKDF2",
-        salt: salt,
+        salt,
         iterations: ITERATIONS,
         hash: "SHA-256"
       },
@@ -175,14 +214,7 @@ export async function hashPassword(password) {
       256
     );
 
-    console.log("HASH STEP 4: Password derived");
-
-    const result =
-      `pbkdf2$${ITERATIONS}$${b64(salt)}$${b64(bits)}`;
-
-    console.log("HASH STEP 5: Hash created");
-
-    return result;
+    return `pbkdf2$${ITERATIONS}$${b64(salt)}$${b64(bits)}`;
 
   } catch (error) {
     console.error("HASH PASSWORD ERROR:", error.message);
@@ -192,9 +224,39 @@ export async function hashPassword(password) {
 
 export async function verifyPassword(password, stored) {
   try {
-    const [scheme, it, salt, hash] = stored.split("$");
+    if (
+      typeof password !== "string" ||
+      typeof stored !== "string"
+    ) {
+      return false;
+    }
 
-    if (scheme !== "pbkdf2") return false;
+    const parts = stored.split("$");
+
+    if (parts.length !== 4) return false;
+
+    const [scheme, iterationText, saltText, hashText] = parts;
+
+    const iterations = Number(iterationText);
+
+    if (
+      scheme !== "pbkdf2" ||
+      !Number.isInteger(iterations) ||
+      iterations < 10000 ||
+      iterations > ITERATIONS
+    ) {
+      return false;
+    }
+
+    const salt = unb64(saltText);
+    const expectedHash = unb64(hashText);
+
+    if (
+      salt.length !== 16 ||
+      expectedHash.length !== 32
+    ) {
+      return false;
+    }
 
     const key = await crypto.subtle.importKey(
       "raw",
@@ -208,8 +270,8 @@ export async function verifyPassword(password, stored) {
       await crypto.subtle.deriveBits(
         {
           name: "PBKDF2",
-          salt: unb64(salt),
-          iterations: Number(it),
+          salt,
+          iterations,
           hash: "SHA-256"
         },
         key,
@@ -217,18 +279,22 @@ export async function verifyPassword(password, stored) {
       )
     );
 
-    const a = b64(bits);
-    const b = hash;
+    const actualHash = b64(bits);
+    const expectedText = b64(expectedHash);
 
-    if (a.length !== b.length) return false;
-
-    let diff = 0;
-
-    for (let i = 0; i < a.length; i++) {
-      diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    if (actualHash.length !== expectedText.length) {
+      return false;
     }
 
-    return diff === 0;
+    let difference = 0;
+
+    for (let i = 0; i < actualHash.length; i++) {
+      difference |=
+        actualHash.charCodeAt(i) ^
+        expectedText.charCodeAt(i);
+    }
+
+    return difference === 0;
 
   } catch (error) {
     console.error("VERIFY PASSWORD ERROR:", error.message);
@@ -237,5 +303,5 @@ export async function verifyPassword(password, stored) {
 }
 
 export const requiredSecret = (env) =>
-  !!env.SESSION_SECRET &&
+  typeof env?.SESSION_SECRET === "string" &&
   env.SESSION_SECRET.length >= 32;
